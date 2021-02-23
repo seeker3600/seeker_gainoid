@@ -1,0 +1,2 @@
+# seeker_gainoid
+主にみやまん大喜利をやってくれるbotちゃん
