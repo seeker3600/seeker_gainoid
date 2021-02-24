@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import discord
+from discord.member import Member
 from discord.message import Message
-import my_token
+from my_token import *
 from twitter_util import TwitterUtil
 from ogiri_gen import OgiriGenerator
 import asyncio
@@ -22,10 +23,15 @@ client = discord.Client()
 @client.event
 async def on_message(message: discord.Message):
 
-    if message.author.bot or message.channel.name != my_token.DISCORD_TEST_CHANNEL:
+    if message.author.bot or not message.channel.name in DISCORD_TARGET_CHANNELS:
         return
 
-    if not message.mentions or message.mentions[0] != client.user:
+    bot_member: Member = await message.guild.fetch_member(client.user.id)
+    a = set(r for r in bot_member.roles if r.is_bot_managed())
+    b = set(r for r in message.role_mentions if r.is_bot_managed())
+
+    # ユーザでもロールでもメンションが無い
+    if not client.user in message.mentions and not a & b:
         return
 
     text = message.content
@@ -33,13 +39,42 @@ async def on_message(message: discord.Message):
     if "おおぎり" in text:
         await endless_ogiri(message)
 
-    if "おだい" in text:
+    elif "おだい" in text:
         await message.reply("ちょっとまってね")
         file = generate_odai_file()
         await message.reply("それっ", file=file)
 
-    if "ののしって" in text:
+    elif "ののしって" in text:
         await message.reply("ばか！あほ！おたんこなす！")
+
+    elif "いる？" in text or "わかった？" in text:
+        await message.reply("はーい♪")
+
+    elif "へるぷ" in text:
+        await message.channel.send(embed=create_help_embed())
+
+    else:
+        await message.reply("何ができるか知りたいなら「へるぷ」のリプをください！")
+
+
+def create_help_embed():
+    embed = discord.Embed(
+        title="seeker_gainoid(大喜利bot)", description="私はこんなことができます。遠慮なく話しかけてくださいね！"
+    )
+    embed.set_thumbnail(
+        url="https://raw.githubusercontent.com/seeker3600/seeker_gainoid/master/face.png"
+    )
+    embed.add_field(name="「おだい」", value="大喜利のお題を出題します")
+    embed.add_field(name="「おおぎり」", value="大喜利大会を開きます。司会進行は私ががんばります")
+    embed.add_field(name="「ののしって」", value="精一杯ののりします。ボキャ貧なんて言わないで！")
+    embed.add_field(name="「いる？」「わかった？」", value="お返事します")
+    embed.add_field(
+        name="プロジェクトサイト",
+        value="https://github.com/seeker3600/seeker_gainoid\nあんなところやこんなところが見れちゃいます",
+        inline=False,
+    )
+
+    return embed
 
 
 def generate_odai_file():
@@ -100,7 +135,7 @@ async def endless_ogiri(message: discord.Message):
 
 # Botの起動とDiscordサーバーへの接続
 print("動くよ！")
-client.run(my_token.DISCORD_TOKEN)
+client.run(DISCORD_TOKEN)
 
 print("止まるよ！")
 generator.quit()
