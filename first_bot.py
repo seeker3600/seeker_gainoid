@@ -8,6 +8,7 @@ from twitter_util import TwitterUtil
 from ogiri_gen import OgiriGenerator
 import asyncio
 from datetime import datetime
+import random
 
 SCREENSHOT = "/tmp/screenshot.png"
 
@@ -45,7 +46,24 @@ async def on_message(message: discord.Message):
         await message.reply("それっ", file=file)
 
     elif "ののしって" in text:
-        await message.reply("ばか！あほ！おたんこなす！")
+        vocabulary = [
+            "あーもうこの鈍感！",
+            "ばか！あほ！おたんこなす！",
+            "すかたん！こんこんちきのすっとこどっこい！",
+            "えっとえっと、あんぽんたん！",
+            "お、おとといきやがれ！",
+        ]
+        idx = random.randrange(len(vocabulary))
+        rep = await message.reply(vocabulary[idx])
+
+        if idx == 0:
+            await asyncio.sleep(2)
+            rep2 = await message.channel.send("あっ")
+            await asyncio.sleep(2)
+
+            retry_msg = vocabulary[random.randrange(1, len(vocabulary))]
+            await rep.edit(content=retry_msg[0] * 3 + retry_msg)
+            await rep2.delete()
 
     elif "いる？" in text or "わかった？" in text:
         await message.reply("はーい♪")
@@ -59,7 +77,9 @@ async def on_message(message: discord.Message):
 
 def create_help_embed():
     embed = discord.Embed(
-        title="seeker_gainoid(大喜利bot)", description="私はこんなことができます。遠慮なく話しかけてくださいね！"
+        title="seeker_gainoid(大喜利bot)",
+        description="私はこんなことができます。遠慮なく話しかけてくださいね！",
+        color=0x9E2429,
     )
     embed.set_thumbnail(
         url="https://raw.githubusercontent.com/seeker3600/seeker_gainoid/master/face.png"
