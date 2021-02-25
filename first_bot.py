@@ -9,8 +9,7 @@ from ogiri_gen import OgiriGenerator
 import asyncio
 from datetime import datetime
 import random
-
-SCREENSHOT = "/tmp/screenshot.png"
+from io import BytesIO
 
 tweets = TwitterUtil()
 tweets.load_dumps()
@@ -99,8 +98,8 @@ def create_help_embed():
 
 def generate_odai_file():
     html = tweets.load_random_embed_html()
-    generator.gen(html, SCREENSHOT)
-    file = discord.File(SCREENSHOT)
+    png = generator.gen(html)
+    file = discord.File(BytesIO(png), filename="odai.png")
 
     return file
 

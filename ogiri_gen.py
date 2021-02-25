@@ -28,11 +28,13 @@ class OgiriGenerator:
     def quit(self):
         self.driver.quit()
 
-    def gen(self, html, filename_out):
+    def gen(self, html):
         embed_html = "/tmp/embed.html"
 
         save_to_html_file(html, embed_html)
-        self.html_to_png("file://" + embed_html, filename_out)
+        png = self.html_to_png("file://" + embed_html)
+
+        return png
 
     JAVASCRIPTISLOADEDALLIMAGESDEFINE = """
         window.isLoadedAllImages = () => {
@@ -56,7 +58,7 @@ class OgiriGenerator:
         };
     """
 
-    def html_to_png(self, url, filename_out):
+    def html_to_png(self, url):
         driver = self.driver
         driver.get(url)
 
@@ -106,8 +108,7 @@ class OgiriGenerator:
         card = driver.find_element_by_id("app")
         png = card.screenshot_as_png
 
-        with open(filename_out, "wb") as f:
-            f.write(png)
+        return png
 
 
 def save_to_html_file(embed_html, filename):
