@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  selenium:
+    image: selenium/standalone-chrome:88.0
+    restart: always
+
+  gainoid:
+    # image: seeker_gainoid_img:latest
+    build:
+      context: .
+    depends_on:
+      - selenium
+    restart: always
+    environment:
+      DISCORD_TOKEN: $DISCORD_TOKEN
+      DISCORD_TARGET_CHANNELS: $DISCORD_TARGET_CHANNELS
+      SELENIUM_REMOTE_URL: http://selenium:4444/wd/hub
+    volumes:
+      - /var/gdata/tweets:/usr/src/app/dumps:ro

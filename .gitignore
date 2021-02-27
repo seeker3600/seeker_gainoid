@@ -5,3 +5,4 @@ embed*.html
 screenshot.png
 *.ipynb
 __pycache__/
+.env

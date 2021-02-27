@@ -5,18 +5,26 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import WebDriverWait
 import os
 import chromedriver_binary
+import time
 
 
 class OgiriGenerator:
     @classmethod
     def new_by_remote(cls, entry_point):
-        options = {
-            "command_executor": entry_point,
-            "desired_capabilities": DesiredCapabilities.CHROME,
-        }
 
-        driver = webdriver.Remote(**options)
-        return OgiriGenerator(driver)
+        for n in range(30):
+            try:
+                options = {
+                    "command_executor": entry_point,
+                    "desired_capabilities": DesiredCapabilities.CHROME,
+                }
+
+                driver = webdriver.Remote(**options)
+                return OgiriGenerator(driver)
+            except Exception as e:
+                print(n)
+                print(e)
+                time.sleep(1)
 
     @classmethod
     def new_by_local(cls):
