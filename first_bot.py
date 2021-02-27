@@ -3,18 +3,26 @@ from __future__ import annotations
 import discord
 from discord.member import Member
 from discord.message import Message
-from my_token import *
 from twitter_util import TwitterUtil
 from ogiri_gen import OgiriGenerator
 import asyncio
 from datetime import datetime
 import random
 from io import BytesIO
+from os import getenv
+
+DISCORD_TOKEN = getenv("DISCORD_TOKEN")
+DISCORD_TARGET_CHANNELS = getenv("DISCORD_TARGET_CHANNELS").split()
+SELENIUM_REMOTE_URL = getenv("SELENIUM_REMOTE_URL")
 
 tweets = TwitterUtil()
 tweets.load_dumps()
 
-generator = OgiriGenerator.new_by_remote("http://localhost:4444/wd/hub")
+generator = (
+    OgiriGenerator.new_by_remote(SELENIUM_REMOTE_URL)
+    if SELENIUM_REMOTE_URL
+    else OgiriGenerator.new_by_local()
+)
 
 # 接続に必要なオブジェクトを生成
 client = discord.Client()

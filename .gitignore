@@ -3,6 +3,5 @@
 dumps/
 embed*.html
 screenshot.png
-my_token.py
 *.ipynb
 __pycache__/

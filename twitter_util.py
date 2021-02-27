@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import random
 import tweepy
-from my_token import *
 import pickle
 import glob
-from os import path
+from os import path, getenv
 
 DUMPS_DIR = "./dumps"
+
+TW_CONSUMER_TOKEN = getenv("TW_CONSUMER_TOKEN")
+TW_CONSUMER_SECRET = getenv("TW_CONSUMER_SECRET")
+TW_ACCESS_TOKEN = getenv("TW_ACCESS_TOKEN")
+TW_ACCESS_TOKEN_SECRET = getenv("TW_ACCESS_TOKEN_SECRET")
 
 
 class TwitterUtil:
