@@ -97,9 +97,13 @@ def create_help_embed():
 
 
 def generate_odai_file():
+    begin_dt = datetime.now()
+
     html = tweets.load_random_embed_html()
     png = generator.gen(html)
     file = discord.File(BytesIO(png), filename="odai.png")
+
+    print(datetime.now() - begin_dt)
 
     return file
 

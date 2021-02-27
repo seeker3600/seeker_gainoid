@@ -3,11 +3,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 import os
 import chromedriver_binary
-import tempfile
-from os import path
-from temp_http_server import publish_a_file
-
-PORT = 8081
 
 
 class OgiriGenerator:
@@ -23,6 +18,7 @@ class OgiriGenerator:
 
         self.options = options
         self.driver = webdriver.Chrome(options=options)
+        self.driver.get("about:blank")
 
     def __enter__(self):
         return self
@@ -33,19 +29,37 @@ class OgiriGenerator:
     def quit(self):
         self.driver.quit()
 
-    def gen(self, html):
+    def gen(self, embed_html):
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-
-            embed_html = path.join(temp_dir, "embed.html")
-            print(embed_html)
-            save_to_html_file(html, embed_html)
-
-            proc = publish_a_file(temp_dir, PORT)
-            png = self.html_to_png(f"http://localhost:{PORT}/embed.html")
-            proc.join()
+        self.load_embed_html(embed_html)
+        png = self.html_to_png()
 
         return png
+
+    def load_embed_html(self, embed_html):
+        driver = self.driver
+        embed_html = embed_html.replace("\n", "").replace("\r", "")
+
+        driver.execute_script(
+            f"""
+            let div = document.getElementById('entry');
+            if(div)
+            {{
+                div.innerHTML = '{embed_html}';
+                await twttr.widgets.load();
+                return;
+            }}
+
+            div = document.createElement('div');
+            div.setAttribute('id', 'entry');
+            div.innerHTML = '{embed_html}';
+            document.body.appendChild(div);
+
+            let js = document.createElement('script');
+            js.setAttribute('src', 'https://platform.twitter.com/widgets.js');
+            document.body.appendChild(js);
+        """
+        )
 
     JAVASCRIPTISLOADEDALLIMAGESDEFINE = """
         window.isLoadedAllImages = () => {
@@ -69,10 +83,8 @@ class OgiriGenerator:
         };
     """
 
-    def html_to_png(self, url):
+    def html_to_png(self):
         driver = self.driver
-        print(url)
-        driver.get(url)
 
         # まずはフレームに入る
         iframe = WebDriverWait(driver, timeout=3).until(
@@ -120,26 +132,8 @@ class OgiriGenerator:
         card = driver.find_element_by_id("app")
         png = card.screenshot_as_png
 
+        driver.switch_to.default_content()
         return png
-
-
-def save_to_html_file(embed_html, filename):
-
-    html = f"""
-        <html lang="jp">
-        <head>
-        <meta charset="utf-8">
-        <title></title>
-        <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-        </head>
-        <body>
-        {embed_html}
-        </body>
-        </html>
-        """
-
-    with open(filename, "w") as f:
-        f.write(html)
 
 
 if __name__ == "__main__":
@@ -151,6 +145,7 @@ if __name__ == "__main__":
         pass
 
     with OgiriGenerator() as generator:
+        png = generator.gen(embed)
         png = generator.gen(embed)
 
         with open("screenshot.png", "wb") as f:
