@@ -51,8 +51,9 @@ class TwitterUtil:
         idx = random.randrange(len(self.tweet_urls))
         url = self.tweet_urls[idx]
 
-        embed = self.api.get_oembed(url, lang="ja-JP", theme="dark", omit_script=True)
-        return embed["html"]
+        # embed = self.api.get_oembed(url, lang="ja-JP", theme="dark", omit_script=True)
+        # return embed["html"]
+        return f"""<blockquote class="twitter-tweet" data-lang="ja-JP" data-theme="dark"><a href="{url}"></a></blockquote>"""
 
     def timeline_to_dump(self, account: str):
 

@@ -156,6 +156,9 @@ async def endless_ogiri(message: discord.Message):
     await channel.send("以上、閉会！ご参加ありがとうございました！")
 
 
+# ジェネレータをプリロード
+generate_odai_file()
+
 # Botの起動とDiscordサーバーへの接続
 print("動くよ！")
 client.run(DISCORD_TOKEN)
