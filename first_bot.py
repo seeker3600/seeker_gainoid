@@ -14,7 +14,7 @@ from io import BytesIO
 tweets = TwitterUtil()
 tweets.load_dumps()
 
-generator = OgiriGenerator()
+generator = OgiriGenerator.new_by_remote("http://localhost:4444/wd/hub")
 
 # 接続に必要なオブジェクトを生成
 client = discord.Client()

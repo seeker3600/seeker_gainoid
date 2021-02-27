@@ -1,12 +1,25 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import WebDriverWait
 import os
 import chromedriver_binary
 
 
 class OgiriGenerator:
-    def __init__(self):
+    @classmethod
+    def new_by_remote(cls, entry_point):
+        options = {
+            "command_executor": entry_point,
+            "desired_capabilities": DesiredCapabilities.CHROME,
+        }
+
+        driver = webdriver.Remote(**options)
+        return OgiriGenerator(driver)
+
+    @classmethod
+    def new_by_local(cls):
         options = Options()
         options.binary_location = "/usr/bin/google-chrome"
         options.add_argument("--headless")
@@ -16,8 +29,11 @@ class OgiriGenerator:
         options.add_argument("--allow-file-access-from-files")
         options.add_argument("--lang=ja-JP")
 
-        self.options = options
-        self.driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(options=options)
+        return OgiriGenerator(driver)
+
+    def __init__(self, driver: WebDriver):
+        self.driver = driver
         self.driver.get("about:blank")
 
     def __enter__(self):
@@ -144,7 +160,7 @@ if __name__ == "__main__":
     except:
         pass
 
-    with OgiriGenerator() as generator:
+    with OgiriGenerator.new_by_local() as generator:
         png = generator.gen(embed)
         png = generator.gen(embed)
 
