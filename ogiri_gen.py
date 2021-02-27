@@ -3,6 +3,11 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 import os
 import chromedriver_binary
+import tempfile
+from os import path
+from temp_http_server import publish_a_file
+
+PORT = 8081
 
 
 class OgiriGenerator:
@@ -29,10 +34,16 @@ class OgiriGenerator:
         self.driver.quit()
 
     def gen(self, html):
-        embed_html = "/tmp/embed.html"
 
-        save_to_html_file(html, embed_html)
-        png = self.html_to_png("file://" + embed_html)
+        with tempfile.TemporaryDirectory() as temp_dir:
+
+            embed_html = path.join(temp_dir, "embed.html")
+            print(embed_html)
+            save_to_html_file(html, embed_html)
+
+            proc = publish_a_file(temp_dir, PORT)
+            png = self.html_to_png(f"http://localhost:{PORT}/embed.html")
+            proc.join()
 
         return png
 
@@ -60,6 +71,7 @@ class OgiriGenerator:
 
     def html_to_png(self, url):
         driver = self.driver
+        print(url)
         driver.get(url)
 
         # まずはフレームに入る
@@ -139,4 +151,7 @@ if __name__ == "__main__":
         pass
 
     with OgiriGenerator() as generator:
-        generator.gen(embed, "screenshot.png")
+        png = generator.gen(embed)
+
+        with open("screenshot.png", "wb") as f:
+            f.write(png)
