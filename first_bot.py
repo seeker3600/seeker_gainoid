@@ -80,7 +80,8 @@ def create_help_embed():
     )
     embed.add_field(name="「おだい」", value="大喜利のお題を出題します")
     embed.add_field(name="「おおぎり」", value="大喜利大会を開きます。司会進行は私ががんばります")
-    embed.add_field(name="「ののしって」", value="精一杯ののりします。ボキャ貧なんて言わないで！")
+    embed.add_field(name="「うみがめ」", value="ウミガメのスープ大会を開きます。司会進行は私ががんばります")
+    embed.add_field(name="「ののしって」", value="精一杯ののしります。ボキャ貧なんて言わないで！")
     embed.add_field(name="「いる？」「わかった？」", value="お返事します")
     embed.add_field(
         name="プロジェクトサイト",
