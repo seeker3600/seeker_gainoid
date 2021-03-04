@@ -3,29 +3,34 @@ from __future__ import annotations
 import discord
 from discord.member import Member
 from discord.message import Message
-from twitter_util import TwitterUtil
-from ogiri_gen import OgiriGenerator
 import asyncio
 from datetime import datetime
 import random
-from io import BytesIO
 from os import getenv
+from skills.endless_ogiri import ogiri_taikai, generate_odai_file, generator
+from skills.nonoshiru import abusive
+from skills.endless_umigame import soup_taikai
 
 DISCORD_TOKEN = getenv("DISCORD_TOKEN")
 DISCORD_TARGET_CHANNELS = getenv("DISCORD_TARGET_CHANNELS").split()
-SELENIUM_REMOTE_URL = getenv("SELENIUM_REMOTE_URL")
-
-tweets = TwitterUtil()
-tweets.load_dumps()
-
-generator = (
-    OgiriGenerator.new_by_remote(SELENIUM_REMOTE_URL)
-    if SELENIUM_REMOTE_URL
-    else OgiriGenerator.new_by_local()
-)
 
 # 接続に必要なオブジェクトを生成
 client = discord.Client()
+
+
+def is_menthioned_me(message):
+
+    # ユーザ指定
+    if client.user in message.mentions:
+        return True
+
+    bot_member: Member = message.guild.get_member(client.user.id)
+    a = set(r for r in bot_member.roles if r.is_bot_managed())
+    b = set(r for r in message.role_mentions if r.is_bot_managed())
+
+    # ロール指定
+    return a & b
+
 
 # メッセージ受信時に動作する処理
 @client.event
@@ -34,18 +39,14 @@ async def on_message(message: discord.Message):
     if message.author.bot or not message.channel.name in DISCORD_TARGET_CHANNELS:
         return
 
-    bot_member: Member = await message.guild.fetch_member(client.user.id)
-    a = set(r for r in bot_member.roles if r.is_bot_managed())
-    b = set(r for r in message.role_mentions if r.is_bot_managed())
-
     # ユーザでもロールでもメンションが無い
-    if not client.user in message.mentions and not a & b:
+    if not is_menthioned_me(message):
         return
 
     text = message.content
 
     if "おおぎり" in text:
-        await endless_ogiri(message)
+        await ogiri_taikai(message)
 
     elif "おだい" in text:
         await message.reply("ちょっとまってね")
@@ -53,24 +54,10 @@ async def on_message(message: discord.Message):
         await message.reply("それっ", file=file)
 
     elif "ののしって" in text:
-        vocabulary = [
-            "あーもうこの鈍感！",
-            "ばか！あほ！おたんこなす！",
-            "すかたん！こんこんちきのすっとこどっこい！",
-            "えっとえっと、あんぽんたん！",
-            "お、おとといきやがれ！",
-        ]
-        idx = random.randrange(len(vocabulary))
-        rep = await message.reply(vocabulary[idx])
+        await abusive(message)
 
-        if idx == 0:
-            await asyncio.sleep(2)
-            rep2 = await message.channel.send("あっ")
-            await asyncio.sleep(2)
-
-            retry_msg = vocabulary[random.randrange(1, len(vocabulary))]
-            await rep.edit(content=retry_msg[0] * 3 + retry_msg)
-            await rep2.delete()
+    elif "うみがめ" in text:
+        await soup_taikai(client, message)
 
     elif "いる？" in text or "わかった？" in text:
         await message.reply("はーい♪")
@@ -78,8 +65,8 @@ async def on_message(message: discord.Message):
     elif "へるぷ" in text:
         await message.channel.send(embed=create_help_embed())
 
-    else:
-        await message.reply("何ができるか知りたいなら「へるぷ」のリプをください！")
+    # else:
+    #     await message.reply("何ができるか知りたいなら「へるぷ」のリプをください！")
 
 
 def create_help_embed():
@@ -102,66 +89,6 @@ def create_help_embed():
     )
 
     return embed
-
-
-def generate_odai_file():
-    begin_dt = datetime.now()
-
-    html = tweets.load_random_embed_html()
-    png = generator.gen(html)
-    file = discord.File(BytesIO(png), filename="odai.png")
-
-    print(datetime.now() - begin_dt)
-
-    return file
-
-
-async def load_presented_replys(
-    odai: Message, deadline: datetime
-) -> list[tuple[Message, int]]:
-
-    channel: discord.TextChannel = odai.channel
-    presents: list[Message] = []
-
-    async for message in channel.history(after=odai.created_at, before=deadline):
-        if (
-            not message.author.bot
-            and message.reference
-            and message.reference.message_id == odai.id
-        ):
-            presents.append((message, sum(r.count for r in message.reactions)))
-
-    presents.sort(key=lambda m: m[1])
-    presents.reverse()
-
-    return presents
-
-
-async def endless_ogiri(message: discord.Message):
-
-    await message.reply("準備するよ、ちょっとまってね")
-    channel: discord.TextChannel = message.channel
-
-    file = generate_odai_file()
-    odai: Message = await channel.send("大喜利大会はーじまーるよー！今回のお題はこちら！", file=file)
-    await channel.send(
-        "制限時間は7分、お題の発言↑に返信して発表してね！\n投票は各発表にリアクションをつけてね！一番多い人の勝ち！それじゃあ始め！"
-    )
-
-    await asyncio.sleep(60 * 7)
-    deadline: Message = await channel.send("そこまで！\n今から3分間は投票タイム！各発表にリアクションをつけてね！")
-
-    await asyncio.sleep(60 * 3)
-    await channel.send("結果発表ぉぉぉぉぉ！")
-
-    presents = await load_presented_replys(odai, deadline.created_at)
-
-    for (i, (pres, reactions)) in enumerate(presents[:3], 1):
-        await channel.send(
-            f"{i}位: {pres.author.mention} 「{pres.content}」\n\t{pres.jump_url}"
-        )
-
-    await channel.send("以上、閉会！ご参加ありがとうございました！")
 
 
 # ジェネレータをプリロード

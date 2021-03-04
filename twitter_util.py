@@ -6,7 +6,7 @@ import pickle
 import glob
 from os import path, getenv
 
-DUMPS_DIR = "./dumps"
+TW_DUMPS_DIR = getenv("TW_DUMPS_DIR", "./dumps")
 
 TW_CONSUMER_TOKEN = getenv("TW_CONSUMER_TOKEN")
 TW_CONSUMER_SECRET = getenv("TW_CONSUMER_SECRET")
@@ -29,7 +29,7 @@ class TwitterUtil:
 
         accounts = set(
             path.basename(d).replace(".dmp", "")
-            for d in glob.glob(f"{DUMPS_DIR}/*.dmp")
+            for d in glob.glob(f"{TW_DUMPS_DIR}/*.dmp")
         )
 
         for account in accounts:
@@ -39,7 +39,7 @@ class TwitterUtil:
 
     def load_dump(self, account: str, reply_white_set: set[str]):
 
-        with open(f"{DUMPS_DIR}/{account}.dmp", "rb") as f:
+        with open(f"{TW_DUMPS_DIR}/{account}.dmp", "rb") as f:
             tweets = pickle.load(f)
 
         print(account, len(tweets))
@@ -48,7 +48,7 @@ class TwitterUtil:
             user_mentions = t.entities["user_mentions"]
             mentions = set(m["screen_name"] for m in user_mentions)
 
-            if not mentions or not (mentions - reply_white_set):
+            if (not mentions or not (mentions - reply_white_set)) and not t.retweeted:
                 self.tweet_urls.append(f"https://twitter.com/{account}/status/{t.id}")
 
     def load_random_embed_html(self) -> str:
@@ -72,7 +72,7 @@ class TwitterUtil:
         ).items():
             all_tweets.append(tweet)
 
-        with open(f"{DUMPS_DIR}/{account}.dmp", "wb") as f:
+        with open(f"{TW_DUMPS_DIR}/{account}.dmp", "wb") as f:
             pickle.dump(all_tweets, f)
 
 
