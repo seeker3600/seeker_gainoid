@@ -2,11 +2,8 @@ from __future__ import annotations
 
 import discord
 from discord.member import Member
-from discord.message import Message
-import asyncio
-from datetime import datetime
-import random
 from os import getenv
+import traceback
 from skills.endless_ogiri import ogiri_taikai, generate_odai_file, generator
 from skills.nonoshiru import abusive
 from skills.endless_umigame import soup_taikai
@@ -45,28 +42,44 @@ async def on_message(message: discord.Message):
 
     text = message.content
 
-    if "おおぎり" in text:
-        await ogiri_taikai(message)
+    try:
 
-    elif "おだい" in text:
-        await message.reply("ちょっとまってね")
-        file = generate_odai_file()
-        await message.reply("それっ", file=file)
+        if "おおぎり" in text:
+            await ogiri_taikai(message)
 
-    elif "ののしって" in text:
-        await abusive(message)
+        elif "おだい" in text:
+            await message.reply("ちょっとまってね")
+            file = generate_odai_file()
+            await message.reply("それっ", file=file)
 
-    elif "うみがめ" in text:
-        await soup_taikai(client, message)
+        elif "ののしって" in text:
+            await abusive(message)
 
-    elif "いる？" in text or "わかった？" in text:
-        await message.reply("はーい♪")
+        elif "うみがめ" in text:
+            await soup_taikai(client, message)
 
-    elif "へるぷ" in text:
-        await message.channel.send(embed=create_help_embed())
+        elif "いる？" in text or "わかった？" in text:
+            await message.reply("はーい♪")
 
-    # else:
-    #     await message.reply("何ができるか知りたいなら「へるぷ」のリプをください！")
+        elif "ぴーん！" in text:
+            reply_msg = await message.reply("ぽーん！")
+
+            piing = message.created_at
+            catch = reply_msg.created_at
+            await reply_msg.edit(content=f"ぽーん！{catch - piing}")
+
+        elif "へるぷ" in text:
+            await message.channel.send(embed=create_help_embed())
+
+        elif "throw" in text:
+            raise Exception("test")
+
+        # else:
+        #     await message.reply("何ができるか知りたいなら「へるぷ」のリプをください！")
+
+    except Exception:
+        traceback.print_exc()
+        await message.reply("ぎゃん！？")
 
 
 def create_help_embed():
@@ -93,7 +106,7 @@ def create_help_embed():
 
 
 # ジェネレータをプリロード
-generate_odai_file()
+# generate_odai_file()
 
 # Botの起動とDiscordサーバーへの接続
 print("動くよ！")

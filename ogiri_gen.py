@@ -7,12 +7,14 @@ import os
 import chromedriver_binary
 import time
 
+TIMEOUT = 5
+
 
 class OgiriGenerator:
     @classmethod
     def new_by_remote(cls, entry_point):
 
-        for n in range(30):
+        while True:
             try:
                 options = {
                     "command_executor": entry_point,
@@ -22,7 +24,6 @@ class OgiriGenerator:
                 driver = webdriver.Remote(**options)
                 return OgiriGenerator(driver)
             except Exception as e:
-                print(n)
                 print(e)
                 time.sleep(1)
 
@@ -111,19 +112,19 @@ class OgiriGenerator:
         driver = self.driver
 
         # まずはフレームに入る
-        iframe = WebDriverWait(driver, timeout=3).until(
+        iframe = WebDriverWait(driver, timeout=TIMEOUT).until(
             lambda d: d.find_element_by_tag_name("iframe"),
         )
         driver.switch_to.frame(iframe)
 
         # カード生成の完了まで待機
-        WebDriverWait(driver, timeout=3).until(
+        WebDriverWait(driver, timeout=TIMEOUT).until(
             lambda d: d.find_element_by_css_selector("article > div > div > span"),
         )
 
         # 画像の読み込み完了まで待機
         driver.execute_script(self.JAVASCRIPTISLOADEDALLIMAGESDEFINE)
-        WebDriverWait(driver, timeout=3).until(
+        WebDriverWait(driver, timeout=TIMEOUT).until(
             lambda d: d.execute_script("return isLoadedAllImages();"),
         )
 
