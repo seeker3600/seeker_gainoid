@@ -14,18 +14,27 @@ SELENIUM_REMOTE_URL = getenv("SELENIUM_REMOTE_URL")
 tweets = TwitterUtil()
 tweets.load_dumps()
 
-generator = (
-    OgiriGenerator.new_by_remote(SELENIUM_REMOTE_URL)
-    if SELENIUM_REMOTE_URL
-    else OgiriGenerator.new_by_local()
-)
+generator = OgiriGenerator.new(SELENIUM_REMOTE_URL)
+
+
+def gen(html):
+    global generator
+
+    try:
+        return generator.gen(html)
+    except:
+        pass
+
+    generator.quit()
+    generator = OgiriGenerator.new(SELENIUM_REMOTE_URL)
+    return generator.gen(html)
 
 
 def generate_odai_file():
     begin_dt = datetime.now()
 
     html = tweets.load_random_embed_html()
-    png = generator.gen(html)
+    png = gen(html)
     file = discord.File(BytesIO(png), filename="odai.png")
 
     print(datetime.now() - begin_dt)

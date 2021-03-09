@@ -7,10 +7,18 @@ import os
 import chromedriver_binary
 import time
 
-TIMEOUT = 5
+TIMEOUT = 300
 
 
 class OgiriGenerator:
+    @classmethod
+    def new(cls, entry_point):
+        return (
+            OgiriGenerator.new_by_remote(entry_point)
+            if entry_point
+            else OgiriGenerator.new_by_local()
+        )
+
     @classmethod
     def new_by_remote(cls, entry_point):
 
@@ -52,7 +60,10 @@ class OgiriGenerator:
         self.quit()
 
     def quit(self):
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        except:
+            pass
 
     def gen(self, embed_html):
 

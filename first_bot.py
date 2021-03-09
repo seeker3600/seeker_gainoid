@@ -106,7 +106,7 @@ def create_help_embed():
 
 
 # ジェネレータをプリロード
-# generate_odai_file()
+generate_odai_file()
 
 # Botの起動とDiscordサーバーへの接続
 print("動くよ！")
