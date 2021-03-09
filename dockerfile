@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT [ "python", "./first_bot.py" ]
+ENTRYPOINT [ "python", "-u", "./first_bot.py" ]
